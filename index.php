@@ -34,93 +34,36 @@ description(longText)
 PS. Remtis paskaitos kodu -->
 
 <body>
+    <div class="container">
+        <ul class="nav">
+            <li class="nav-item fs-5">
+                <a class="nav-link" href="index.php">Pagrindinis</a>
+            </li>
+            <li class="nav-item fs-5">
+                <a class="nav-link" href="index.php?page-create">Naujas produktas</a>
+            </li>
+            <li class="nav-item fs-5">
+                <a class="nav-link" href="index.php?page=update">Redaguoti produktą</a>
+            </li>
+        </ul>
 
-    <?php
+        <?php
 
-    //1.Prie duomenu bazes reikia prisijungti
-    //2. Kodas turi atlikti SQL uzklausa
-    //3.Kodas turi atsijungti nuo duomenu bazes
+        //pagal GET kintamaji mes busime nukreipiami į tam tikrus puslapius
 
-    class DatabaseConnection {
-        private $host = "localhost";
-        private $user = "root";
-        private $password = "";
-        private $database = "parduotuve";
-
-        protected $conn; //connection kad sita savybe galetu naudotis kitos klases
-
-        //Konstruktoriaus funkcija - pasileidzia automatiskai objektui susikurus/ivykdzius objekto metoda
-        public function __construct() {
-            try {
-                $this->conn = new PDO("mysql:host=$this->host;dbname=$this->database", $this->user, $this->password);
-                echo "Prisijungta prie duomenu bazes sekmingai";
-            } catch(PDOException $e) {
-                echo "Prisijungti prie duomenu bazes nepavyko: " . $e->getMessage();
+        if (isset($_GET["page"])) {
+            if (($_GET["page"]) == "create") {
+                include("products/create.php");
+            } else if (($_GET["page"]) == "update") {
+                include("products/update.php");
             }
-
+        } else {
+            include("products/index.php");
         }
 
-        //2. Kodas turi atlikti SQL uzklausa
+        ?>
 
-        // $col - rikiavimo stulpelis (id, title, description)
-        // $sortDir - rikiavimo kryptis (ASC, DESC)
-
-        // SELECT - grazina rezultatu masyva
-
-        // INSERT - negrazina jokiu irasu
-        // DELETE - negrazina jokiu irasu
-        // UPDATE - negrazina jokiu irasu
-
-        //SELECT * FROM `categories` WHERE 1;
-
-        public function selectAction($table, $col = "id", $sortDir = "ASC") {
-            try {
-                $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $sql = "SELECT * FROM `$table` WHERE 1 ORDER BY $col $sortDir";
-                //pasiruosimas vykdyti
-                $stmt = $this->conn->prepare($sql);
-                //vykdyti
-                $stmt->execute();
-
-                $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
-                $result = $stmt->fetchAll();
-
-                var_dump($result);
-
-            } catch(PDOException $e) {
-                echo "Nepavyko vykdyti uzklausos: " . $e->getMessage();
-            }
-        }
-
-        //$cols - iterpiami stulpeliai, masyvas
-        //$values - iterpiamos reiksmes
-
-        public function insertAction($table, $cols, $values) {
-            try {
-                $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $sql = "INSERT INTO `$table` (`title`, `description`, `price`, `category_id`, `image_url`) VALUES ('test','test','test','1','test')";
-                $this->conn->exec($sql);
-                echo "Pavyko sukurti nauja irasa";
-            } catch (PDOException $e) {
-                echo "Nepavyko sukurti naujo iraso: " . $e->getMessage();
-            }
-        }
-
-        //3.Kodas turi atsijungti nuo duomenu bazes
-        public function __destruct() {
-            $this->conn = null;
-            echo "Atjungta is duomenu bazes sekmingai";
-        }
-
-    }
-
-    $conn = new DatabaseConnection();
-    $conn->selectAction("categories");
-    $conn->selectAction("products");
-    $conn->insertAction("products");
-    ?>
-
-   
+    </div>
 
 </body>
 
