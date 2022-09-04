@@ -1,96 +1,137 @@
- <?php
+<?php 
 
-    //1.Prie duomenu bazes reikia prisijungti
-    //2. Kodas turi atlikti SQL uzklausa
-    //3.Kodas turi atsijungti nuo duomenu bazes
+class DatabaseConnection {
+    private $host = "localhost";
+    private $user = "root";
+    private $password = "";
+    private $database = "parduotuve";
 
-    class DatabaseConnection
-    {
-        private $host = "localhost";
-        private $user = "root";
-        private $password = "";
-        private $database = "parduotuve";
+    protected $conn;
 
-        protected $conn; //connection kad sita savybe galetu naudotis kitos klases
-
-        //Konstruktoriaus funkcija - pasileidzia automatiskai objektui susikurus/ivykdzius objekto metoda
-        public function __construct()
-        {
-            try {
-                $this->conn = new PDO("mysql:host=$this->host;dbname=$this->database", $this->user, $this->password);
-                //echo "Prisijungta prie duomenu bazes sekmingai";
-            } catch (PDOException $e) {
-                echo "Prisijungti prie duomenu bazes nepavyko: " . $e->getMessage();
-            }
+    public function __construct() {
+        try {
+            $this->conn = new PDO("mysql:host=$this->host;dbname=$this->database", $this->user, $this->password);
+            //$this->conn->exec("set names utf8");
+            //echo "Prisijungta prie duomenu bazes sekmingai";
+        } catch(PDOException $e) {
+            echo "Prisijungti prie duomenu bazes nepavyko: " . $e->getMessage();
         }
 
-        //2. Kodas turi atlikti SQL uzklausa
+    }
+   
+    public function selectAction($table, $col ="id", $sortDir ="ASC") {
+        try {
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $sql = "SELECT * FROM `$table` WHERE 1 ORDER BY $col $sortDir";
+            //pasiruosimas vykdyti
+            $stmt = $this->conn->prepare($sql);
+            //vykdyti
+            $stmt->execute();
 
-        // $col - rikiavimo stulpelis (id, title, description)
-        // $sortDir - rikiavimo kryptis (ASC, DESC)
+            $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
+            $result = $stmt->fetchAll();
 
-        // SELECT - grazina rezultatu masyva
+            return $result;
 
-        // INSERT - negrazina jokiu irasu
-        // DELETE - negrazina jokiu irasu
-        // UPDATE - negrazina jokiu irasu
-
-        //SELECT * FROM `categories` WHERE 1;
-
-        public function selectAction($table, $col = "id", $sortDir = "ASC")
-        {
-            try {
-                $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $sql = "SELECT * FROM `$table` WHERE 1 ORDER BY $col $sortDir";
-                //pasiruosimas vykdyti
-                $stmt = $this->conn->prepare($sql);
-                //vykdyti
-                $stmt->execute();
-
-                $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
-                $result = $stmt->fetchAll();
-
-                return $result;
-            } catch (PDOException $e) {
-                return "Nepavyko vykdyti uzklausos: " . $e->getMessage();
-            }
-        }
-
-        //$cols - iterpiami stulpeliai, masyvas
-        //$values - iterpiamos reiksmes
-
-        //products
-        //$cols - [title, description, price, category_id, image_url]
-        //$values - [test, test, rand(0, 5000), rand(1, 3), test]
-
-        //categories
-        //$cols - ["title", "description"]
-        //$values - ["'test'", "'test'"]
-        public function insertAction($table, $cols, $values)
-        {
-
-            //masyva pavercia i teksta per skirtuka (delimeter) ["title", "description"] => "title, description"
-            $cols = implode(",", $cols);
-            $values = implode(",", $values);
-
-
-            try {
-                $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $sql = "INSERT INTO `$table` ($cols) VALUES ($values)";
-                var_dump($sql);
-                $this->conn->exec($sql);
-                echo "Pavyko sukurti nauja irasa";
-            } catch (PDOException $e) {
-                echo "Nepavyko sukurti naujo iraso: " . $e->getMessage();
-            }
-        }
-
-        //3.Kodas turi atsijungti nuo duomenu bazes
-        public function __destruct()
-        {
-            $this->conn = null;
-            //echo "Atjungta is duomenu bazes sekmingai";
+        } catch(PDOException $e) {
+            return "Nepavyko vykdyti uzklausos: " . $e->getMessage();
         }
     }
+   
+    public function insertAction($table, $cols, $values) {
+
+
+        $cols = implode(",", $cols);
+        //masyva pavercia i teksta per skirtuka ["title", "description"] => "title,description"
+        $values = implode(",", $values);//  ["test", "test"] => "test,test"
+
+        try {
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $sql= "INSERT INTO `$table` ($cols) VALUES ($values)";
+            //var_dump($sql);
+            $this->conn->exec($sql);
+            echo "Pavyko sukurti nauja irasa";
+
+        } catch (PDOException $e) {
+            echo "Nepavyko sukurti naujo iraso: " . $e->getMessage();
+        }
+
+    }
+
+    public function deleteAction($table, $id) {
+        try {
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $sql = "DELETE FROM `$table` WHERE id = $id";
+            $this->conn->exec($sql);
+            echo "Pavyko istrinti irasa";
+        }
+        catch(PDOException $e) {
+            echo "Nepavyko istrinti iraso: " . $e->getMessage();
+        }
+    }
+
+    public function updateAction($table, $id, $data) {
+        $cols = array_keys($data);
+        $values = array_values($data);
+
+        $dataString = [];
+        for ($i=0; $i<count($cols); $i++) {
+           $dataString[] = $cols[$i] . " = '" . $values[$i]. "'";
+        }
+        $dataString = implode(",", $dataString);
+
+       try{
+              $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+              $sql = "UPDATE `$table` SET $dataString WHERE id = $id";
+              $stmt = $this->conn->prepare($sql);
+              $stmt->execute();
+              echo "Pavyko atnaujinti irasa";
+         } 
+       catch(PDOException $e) {
+              echo "Nepavyko atnaujinti iraso: " . $e->getMessage();
+       }
+    }
+
+    public function selectOneAction($table, $id) {
+        try {
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $sql = "SELECT * FROM `$table` WHERE id = $id";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
+            $result = $stmt->fetchAll();
+            return $result;
+        } catch(PDOException $e) {
+            return "Nepavyko vykdyti uzklausos: " . $e->getMessage();
+        }
+    }
+
+    public function selectWithJoin($table1, $table2, $table1RelationCol, $table2RelationCol, $join, $cols) {
+
+        $cols = implode(",", $cols);
+        
+        try {
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $sql = "SELECT $cols FROM $table1 
+            $join $table2
+            ON $table1.$table1RelationCol = $table2.$table2RelationCol";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
+            $result = $stmt->fetchAll();
+            return $result;
+        }
+        catch(PDOException $e) {
+            return "Nepavyko vykdyti uzklausos: " . $e->getMessage();
+        }
+    }
+
+    public function __destruct() {
+        $this->conn = null;
+      //echo "Atjungta is duomenu bazes sekmingai";
+    }
+
+
+}
 
 ?>
