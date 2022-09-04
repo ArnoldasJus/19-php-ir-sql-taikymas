@@ -40,7 +40,7 @@
 
     <div class="container">
         <ul class="nav">
-            <li class="nav-item fs-5">
+            <!-- <li class="nav-item fs-5">
                 <a class="nav-link" href="index.php">Pagrindinis</a>
             </li>
             <li class="nav-item fs-5">
@@ -48,7 +48,7 @@
             </li>
             <li class="nav-item fs-5">
                 <a class="nav-link" href="index.php?page=update">Redaguoti produktą</a>
-            </li>
+            </li> -->
         </ul>
         <?php
 

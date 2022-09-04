@@ -106,7 +106,7 @@ class DatabaseConnection {
         }
     }
 
-    public function selectWithJoin($table1, $table2, $table1RelationCol, $table2RelationCol, $join, $cols) {
+    public function selectWithJoin($table1, $table2, $table1RelationCol, $table2RelationCol, $join, $cols, $sortCol = "id", $sortDir = "ASC") {
 
         $cols = implode(",", $cols);
         
@@ -114,7 +114,9 @@ class DatabaseConnection {
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $sql = "SELECT $cols FROM $table1 
             $join $table2
-            ON $table1.$table1RelationCol = $table2.$table2RelationCol";
+            ON $table1.$table1RelationCol = $table2.$table2RelationCol
+            ORDER BY $sortCol $sortDir";
+            
             $stmt = $this->conn->prepare($sql);
             $stmt->execute();
             $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);

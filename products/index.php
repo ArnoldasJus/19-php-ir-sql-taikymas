@@ -11,6 +11,18 @@
 
 <body>
     <h1>Products</h1>
+    <form method="GET">
+        <!-- <input class="form-control" type="text" name="sortCol" placeholder=""> -->
+        <select class="form-select" name="sortCol">
+            <option value="categoryTitle">Category</option>
+        </select>
+        <!-- <input class="form-control" type="text" name="sortDir" placeholder=""> -->
+        <select class="form-select" name="sortDir">
+            <option value="ASC">ASC</option>
+            <option value="DESC">DESC</option>
+        </select>
+        <button type="submit" name="sort">Sort</button>
+    </form>
     <table class="table table-striped">
         <tr>
             <th>ID</th>

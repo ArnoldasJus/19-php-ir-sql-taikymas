@@ -12,7 +12,15 @@ class ShopDatabase extends DatabaseConnection {
 
 
     public function getProducts() {
-        $this->products = $this->selectWithJoin("products","categories","category_id","id","LEFT JOIN",["products.id", "products.title", "products.description", "products.price", "products.image_url", "categories.title AS categoryTitle"]);
+
+        if(isset($_GET["sortCol"]) && isset($_GET["sortDir"])) {
+            $sortCol = $_GET["sortCol"];
+            $sortDir = $_GET["sortDir"];
+        } else {
+            $sortCol = "id";
+            $sortDir = "ASC";
+        }
+        $this->products = $this->selectWithJoin("products","categories","category_id","id","LEFT JOIN",["products.id", "products.title", "products.description", "products.price", "products.image_url", "categories.title AS categoryTitle"], $sortCol, $sortDir);
         return $this->products;
     }
 
